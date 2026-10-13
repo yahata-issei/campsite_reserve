@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>キャンプ場予約</title>
+    <!-- htmxを読み込む魔法の一行 -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+    <h1>予約システム（Django + htmx版）</h1>
+    
+    <!-- ボタンを押すと /clicked/ に通信し、結果を下の div に表示する -->
+    <button hx-get="/clicked/" hx-target="#result">
+        通信テスト
+    </button>
+    
+    <div id="result" style="margin-top: 20px; color: blue;">
+        <!-- ここに結果が出ます -->
+    </div>
+</body>
+</html>
