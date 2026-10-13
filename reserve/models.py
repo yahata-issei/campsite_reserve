@@ -6,8 +6,8 @@ class Campsite(models.Model):
     """キャンプ場の区画（サイト）情報を管理するテーブル"""
     name = models.CharField("サイト名", max_length=50)  # 例：常設テントサイト、持ち込みテントサイト
     capacity = models.IntegerField("定員（名）", default=4)
-    price_stay = models.IntegerField("1泊あたりの料金")
-    price_day = models.IntegerField("日帰りの料金", blank=True, null=True)
+    price_stay = models.IntegerField("1泊の料金(1張りあたり)")
+    price_day = models.IntegerField("日帰りの料金(1張りあたり)", blank=True, null=True)
     description = models.TextField("説明", blank=True, null=True)
 
     def __str__(self):
@@ -29,6 +29,9 @@ class Booking(models.Model):
         ('DAY', '日帰り'),
     )
     plan_type = models.CharField("利用プラン", max_length=10, choices=PLAN_CHOICES, default='STAY')
+
+    #何張り立てるのか
+    tent_count = models.IntegerField("テント・タープの数（張り）", default=1)
     
     # いつからいつまでか
     check_in = models.DateField("チェックイン日")
