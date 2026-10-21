@@ -1,9 +1,7 @@
 from django.contrib import admin
-from django.urls import path
-from reserve import views
+from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),          # 管理者画面
-    path('', views.index, name='index'),      # 何も指定しないトップページ
-    path('clicked/', views.clicked, name='clicked'), # 通信テスト用
+    path('admin/', admin.site.urls),
+    path('', include('reserve.urls')), # すべてのルートを reserve アプリの urls.py に委任
 ]

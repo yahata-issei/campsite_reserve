@@ -2,20 +2,80 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>キャンプ場予約</title>
-    <!-- htmxを読み込む魔法の一行 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>キャンプ場予約システム</title>
+    <!-- htmxの読み込み -->
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 20px auto; padding: 0 10px; }
+        .site-card { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 8px; background: #f9f9f9; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; }
+        input, select, button { padding: 8px; width: 100%; max-width: 300px; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        button:hover { background-color: #218838; }
+        .result-area { margin-top: 15px; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <h1>予約システム（Django + htmx版）</h1>
-    
-    <!-- ボタンを押すと /clicked/ に通信し、結果を下の div に表示する -->
-    <button hx-get="/clicked/" hx-target="#result">
-        通信テスト
-    </button>
-    
-    <div id="result" style="margin-top: 20px; color: blue;">
-        <!-- ここに結果が出ます -->
-    </div>
+
+    <h1>キャンプ場 予約申し込み</h1>
+
+    {% for site in campsites %}
+        <div class="site-card">
+            <h2>{{ site.name }} （定員: {{ site.capacity }}名）</h2>
+            <p>
+                <strong>宿泊:</strong> {{ site.price_per_tent_stay }}円 / 1張り<br>
+                {% if site.price_per_tent_day %}
+                    <strong>日帰り:</strong> {{ site.price_per_tent_day }}円 / 1張り
+                {% else %}
+                    <span style="color: #888;">※日帰り利用不可</span>
+                {% endif %}
+            </p>
+
+            <!-- 予約フォーム (htmxで送信) -->
+            <form hx-post="/reserve/create/" 
+                  hx-target="#result-{{ site.id }}" 
+                  hx-swap="innerHTML">
+                {% csrf_token %}
+                
+                <!-- どのサイトに対する予約かを識別するための隠しフィールド -->
+                <input type="hidden" name="campsite_id" value="{{ site.id }}">
+
+                <div class="form-group">
+                    <label>利用プラン</label>
+                    <select name="plan_type">
+                        <option value="STAY">宿泊</option>
+                        {% if site.price_per_tent_day %}
+                            <option value="DAY">日帰り</option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>テント・タープ数</label>
+                    <input type="number" name="tent_count" value="1" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label>利用開始日（チェックイン）</label>
+                    <input type="date" name="check_in" required>
+                </div>
+
+                <div class="form-group">
+                    <label>利用終了日（チェックアウト）</label>
+                    <input type="date" name="check_out" required>
+                </div>
+
+                <button type="submit">予約内容を確認・送信</button>
+            </form>
+
+            <!-- Bさんのviews.pyから返された結果メッセージが入却される場所 -->
+            <div id="result-{{ site.id }}" class="result-area"></div>
+        </div>
+    {% empty %}
+        <p>現在、利用可能なサイトがありません。管理画面から登録してください。</p>
+    {% endfor %}
+
 </body>
 </html>
