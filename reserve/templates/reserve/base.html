@@ -1,0 +1,39 @@
+<!-- reserve/templates/reserve/base.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}キャンプ場予約システム{% endblock %}</title>
+    
+    <!-- Tailwind CSS (デザイン用) と htmx (通信用) の読み込み -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- 全画面共通のヘッダー -->
+    <header class="bg-emerald-700 text-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                 <a href="{% url 'index' %}" class="hover:text-emerald-200 transition">御手水の滝キャンプ場予約</a>
+            </h1>
+            <nav class="text-sm font-medium">
+                <a href="/admin/" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded transition">管理画面</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 各ページの中身が差し込まれるメインエリア -->
+    <main class="container mx-auto px-4 py-8 flex-grow">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- 全画面共通のフッター -->
+    <footer class="bg-gray-800 text-gray-400 text-center py-6 mt-auto">
+        <p class="text-sm">&copy; 2026 campsite_reserve Team.</p>
+    </footer>
+
+</body>
+</html>

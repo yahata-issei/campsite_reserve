@@ -20,17 +20,23 @@ def create_booking(request):
         check_in_str = request.POST.get('check_in')
         check_out_str = request.POST.get('check_out')
 
+        # 1. 日付の妥当性チェック
         try:
             check_in = datetime.strptime(check_in_str, '%Y-%m-%d').date()
             check_out = datetime.strptime(check_out_str, '%Y-%m-%d').date()
         except (ValueError, TypeError):
-            return HttpResponse('<p style="color: red; margin-top: 10px;">⚠️ 日付を正しく指定してください。</p>')
+            return render(request, 'reserve/booking_result.html', {
+                'error': True, 'message': '⚠️ 日付を正しく指定してください。'
+            })
 
         if check_in >= check_out:
-            return HttpResponse('<p style="color: red; margin-top: 10px;">⚠️ チェックアウト日は利用開始日より後の日付を選択してください。</p>')
+            return render(request, 'reserve/booking_result.html', {
+                'error': True, 'message': '⚠️ チェックアウト日は利用開始日より後の日付を選択してください。'
+            })
 
         campsite = get_object_or_404(Campsite, id=campsite_id)
 
+        # 2. 日付の重複判定ロジック
         overlapping_bookings = Booking.objects.filter(
             campsite=campsite,
             status='CONFIRMED',
@@ -39,16 +45,19 @@ def create_booking(request):
         )
 
         if overlapping_bookings.exists():
-            return HttpResponse(
-                f'<p style="color: #d9534f; margin-top: 10px;">'
-                f'❌ 申し訳ありません。{campsite.name} は指定された期間（{check_in} 〜 {check_out}）に先客の予約が入っています。'
-                f'</p>'
-            )
+            return render(request, 'reserve/booking_result.html', {
+                'error': True, 
+                'message': f'❌ 申し訳ありません。{campsite.name} は指定された期間に先客の予約が入っています。'
+            })
 
+        # 3. ユーザー情報の取得（開発用）
         user = request.user if request.user.is_authenticated else User.objects.first()
         if not user:
-            return HttpResponse('<p style="color: red; margin-top: 10px;">⚠️ ユーザー情報が見つかりません。管理画面でスーパーユーザーを作成してください。</p>')
+            return render(request, 'reserve/booking_result.html', {
+                'error': True, 'message': '⚠️ ユーザー情報が見つかりません。管理画面でスーパーユーザーを作成してください。'
+            })
 
+        # 4. 予約の作成・保存
         booking = Booking.objects.create(
             user=user,
             campsite=campsite,
@@ -59,13 +68,15 @@ def create_booking(request):
             status='CONFIRMED'
         )
 
-        return HttpResponse(
-            f'<div style="background-color: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-top: 10px;">'
-            f'<strong>✅ 予約が完了しました！</strong><br>'
-            f'サイト: {campsite.name}（{tent_count}張り / {booking.get_plan_type_display()}）<br>'
-            f'期間: {check_in} 〜 {check_out}<br>'
-            f'合計金額: <strong>{booking.total_price:,} 円</strong>'
-            f'</div>'
-        )
+        # 5. 予約成功のデータをHTMLに渡して返す
+        return render(request, 'reserve/booking_result.html', {
+            'error': False,
+            'campsite': campsite,
+            'tent_count': tent_count,
+            'plan_name': booking.get_plan_type_display(),
+            'check_in': check_in,
+            'check_out': check_out,
+            'total_price': f"{booking.total_price:,}"
+        })
 
     return HttpResponse('<p style="color: red;">不正なアクセスです。</p>')
